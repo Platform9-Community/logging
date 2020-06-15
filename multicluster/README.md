@@ -183,7 +183,7 @@ under the Service Discovery and Targets tabs.
 ## Viewing the logs
 
 To view, switch to the management cluster, expose Grafana locally again, 
-and navigate to `localhost:3000``:
+and navigate to `localhost:3000`:
 ```
 export KUBECONFIG=$(pwd)/mgmt.kubeconfig
 kubectl -n dashboards port-forward svc/grafana 3000:80
@@ -193,6 +193,8 @@ As of writing, Grafana does not yet support Loki data in dashboards. However,
 you should now be able to go to "Explore", and select or create a label to 
 filter and display the logs. For example to view the logs from the workload 
 clusters' apiserver component, use: `{instance="etcd-workload-1-control-plane"}`.
+
+![screenshot-grafana.png](./screenshot-grafana.png)
 
 ## Clean up setup
 
