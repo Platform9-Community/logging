@@ -1,0 +1,15 @@
+apiVersion: logging.pf9.io/v1alpha1
+kind: Output
+metadata:
+  name: elastic-obj 
+spec:
+  type: elasticsearch
+  params:
+    - name: url
+      value: http://%CHANGE_SVC%.%CHANGE_NAMESPACE%.svc.cluster.local:9200 
+    - name: user
+      value: %CHANGE_USER%
+    - name: password
+      value: %CHANGE_PASS%
+    - name: index_name
+      value: demo-test

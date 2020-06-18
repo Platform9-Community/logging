@@ -1,0 +1,10 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: app-kibana 
+  namespace: logging 
+spec:
+  version: 7.7.1
+  count: 1
+  elasticsearchRef:
+    name: app-elasticsearch 
