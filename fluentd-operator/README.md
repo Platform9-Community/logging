@@ -14,7 +14,7 @@ Logging operator uses fluent-bit and fluentd for collection and processing of lo
 **Output** is a Custom Resource Definition that defines a datastore where logs are to be stored. Currently, the operator supports ElasticSearch, S3 and Loki as log stores.
 
 ## Logging on PMK Cluster ###
-If you are using a PMK provisioned cluster, fluentd-operator can be automatically enabled on the cluster by adding appropriate tags in the UI.
+If you are using a PMK provisioned cluster, fluentd-operator can be automatically enabled on the cluster by adding `pf9-system:logging` tag in the UI during cluster creation.
 
 For deploying elasticsearch datastore, configuring with fluentd-operator and viewing the logs in Kibana, you can simply run the below script
 
@@ -23,6 +23,10 @@ For deploying elasticsearch datastore, configuring with fluentd-operator and vie
 ```
 
 This script deploys ECK (Elastic Cloud on Kubernetes) along with elasticsearch and kibana deployments. It also creates the `Output` Custom Resource pointing to the elasticsearch deployment and automatically forwarding logs to Kibana.
+
+**Note:** Make sure to set the below mentioned variables prior to running the script
+
+` $DU_FQDN | $DU_USERNAME | $DU_PASSWORD | $DU_CLUSTER `
 
 Finally you can check the index (defined in Output CR) getting created in elasticsearch and can view the logs in Kibana.
 
