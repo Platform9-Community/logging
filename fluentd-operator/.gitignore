@@ -1,0 +1,2 @@
+kubeconfig
+deployments/cr-fluentd-elastic.yaml

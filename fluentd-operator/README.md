@@ -24,9 +24,13 @@ For deploying elasticsearch datastore, configuring with fluentd-operator and vie
 
 This script deploys ECK (Elastic Cloud on Kubernetes) along with elasticsearch and kibana deployments. It also creates the `Output` Custom Resource pointing to the elasticsearch deployment and automatically forwarding logs to Kibana.
 
-**Note:** Make sure to set the below mentioned variables prior to running the script
+**Notes:**
+1. Make sure to set the below mentioned variables prior to running the script  
+    ` $DU_FQDN | $DU_USERNAME | $DU_PASSWORD | $DU_CLUSTER `
 
-` $DU_FQDN | $DU_USERNAME | $DU_PASSWORD | $DU_CLUSTER `
+2. Kibana is accessible only till the script is running. Exiting from the script would stop connection to Kibana
+
+3. You are connected to VPN while running the script
 
 Finally you can check the index (defined in Output CR) getting created in elasticsearch and can view the logs in Kibana.
 

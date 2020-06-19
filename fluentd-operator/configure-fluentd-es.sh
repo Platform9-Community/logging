@@ -1,14 +1,17 @@
-DU_FQDN="test-du-appbert-u16-1207797.platform9.horse"
-DU_USERNAME="pf9@platform9.com"
-DU_PASSWORD="pf9"
-DU_CLUSTER="testx"
+#!/bin/bash
+
+DU_FQDN="<DU_FQDN>"
+DU_USERNAME="<DU_USERNAME>"
+DU_PASSWORD="<DU_PASSWORD>"
+DU_CLUSTER="<DU_CLUSTER_NAME>"
 
 # SETTING COLOURS IN SCRIPT
 RCol='\e[0m'    
 Blu='\e[0;34m'
 Gre='\e[0;32m'
-Yel='\e[0;33m'
 Red='\e[0;31m'
+Bk_Bla='\e[1;30m'
+On_Whi='\e[47m'
 
 FLUENTD_OPERATOR_DEPLOYMENTS_PATH="$PWD/deployments"
 FLUENTD_NAMESPACE="logging"
@@ -17,7 +20,15 @@ ELASTIC_USER="elastic"
 ELASTIC_APP="app-elasticsearch"
 ELASTIC_SVC="${ELASTIC_APP}-es-http"
 
+function cleanup() {
+  rm -rf ${FLUENTD_OPERATOR_DEPLOYMENTS_PATH}/cr-fluentd-elastic.yaml
+  rm -rf $PWD/kubeconfig
+  exit
+}
+trap 'cleanup' SIGINT SIGQUIT SIGTSTP
+
 function export_kubeconfig() {
+  echo -e "\n[${Blu}ACTION${RCol}] Downloading kubeconfig for the cluster ${Bk_Bla}${On_Whi}$DU_CLUSTER${RCol} on DU ${Bk_Bla}${On_Whi}$DU_FQDN${RCol}"
   BASE_URL="https://$DU_FQDN"
   AUTH_REQUEST_PAYLOAD="{
   \"auth\":{
@@ -67,6 +78,17 @@ function export_kubeconfig() {
  
   sed -i "s/__INSERT_BEARER_TOKEN_HERE__/$X_AUTH_TOKEN/" "$PWD/kubeconfig"
   export KUBECONFIG="$PWD/kubeconfig"
+  echo -e "\n[${Gre}RESULT${RCol}] Kubeconfig for the cluster $DU_CLUSTER downloaded successfully"
+}
+
+function verify_fluentd_operator() {
+  echo -e "\n[${Blu}ACTION${RCol}] Verifying fluentd-operator exists..."
+  kubectl get namespace $FLUENTD_NAMESPACE > /dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    echo -e "\n[${Gre}RESULT${RCol}] Fluentd-operator is up and running..."
+  else
+    kubectl create namespace $FLUENTD_NAMESPACE
+  fi
 }
 
 function deploy_elastic_stack() {
@@ -79,9 +101,9 @@ function deploy_elastic_stack() {
   kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   echo -e "\n[${Gre}RESULT${RCol}] Created storage class for elasticsearch"
 
-  echo -e "\n[${Blu}ACTION${RCol}] Deploying elasticsearch application\n"
+  echo -e "\n[${Blu}ACTION${RCol}] Deploying ${Bk_Bla}${On_Whi}elasticsearch${RCol} application\n"
   kubectl apply -f $FLUENTD_OPERATOR_DEPLOYMENTS_PATH/elasticsearch.yaml
-  echo -e "\n[${Blu}ACTION${RCol}] Deploying kibana application\n"
+  echo -e "\n[${Blu}ACTION${RCol}] Deploying ${Bk_Bla}${On_Whi}kibana${RCol} application\n"
   kubectl apply -f $FLUENTD_OPERATOR_DEPLOYMENTS_PATH/kibana.yaml
 }
 
@@ -104,23 +126,25 @@ function connect_fluentd_es() {
   FLUENTD_POD=$(kubectl get pod --namespace=$FLUENTD_NAMESPACE -l 'k8s-app=fluentd' -o=jsonpath='{.items[0].metadata.name}')
   kubectl delete pod --namespace=$FLUENTD_NAMESPACE $FLUENTD_POD > /dev/null
 
-  echo -e "\n[${Gre}RESULT${RCol}] Successfully established connection between fluentd and elasticsearch!!"
+  echo -e "\n[${Gre}RESULT${RCol}] Successfully established connection between ${Bk_Bla}${On_Whi}fluentd and elasticsearch${RCol}!!"
 }
 
 function export_kibana() {
   echo -e "\n*****************************************************************"
-  echo "You can now login into kibana using below credentials"
-  echo -e "\n${Gre}USERNAME:${RCol} $ELASTIC_USER"
+  echo "You can now login into kibana from your browser using below credentials"
+  echo -e "\n${Gre}URL:${RCol} https://localhost:5601"
+  echo -e "${Gre}USERNAME:${RCol} $ELASTIC_USER"
   echo -e "${Gre}PASSWORD:${RCol} $ELASTIC_PASS"
+
+  echo -e "\n[${Red}NOTE${RCol}] Make sure you are connected to VPN while accessing Kibana"
   echo -e "\n*****************************************************************"
   kubectl port-forward service/app-kibana-kb-http --namespace=$FLUENTD_NAMESPACE 5601 > /dev/null
 }
 
+echo -e "\n[${Red}NOTE${RCol}] Make sure you are connected to VPN before running the script"
 export_kubeconfig
+verify_fluentd_operator
 deploy_elastic_stack
 wait_for_deployments
 connect_fluentd_es
 export_kibana
-
-trap "{ rm -rf ${FLUENTD_OPERATOR_DEPLOYMENTS_PATH}/cr-fluentd-elastic.yaml; rm -rf $PWD/kubeconfig; }" EXIT INT QUIT STOP
-
