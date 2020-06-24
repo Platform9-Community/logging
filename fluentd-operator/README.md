@@ -34,8 +34,18 @@ This script deploys ECK (Elastic Cloud on Kubernetes) along with elasticsearch a
 
 4. You should be connected to Platform9 VPN while running the script for configuring kubectl with your PMK Cluster.
 
-Finally you can check the index (defined in Output CR) getting created in elasticsearch and can view the logs after creating an index-pattern in Kibana.
+Here is a sample screenshot of `configure-fluentd-es.sh` script. At the end of the script you can see the Kibana login details. Use them to login into kibana from your brower while you are connected to VPN.
 
+![script_screenshot.png](./images/script_screenshot.png)
+
+
+Finally you can check the index configured by fluentd-operator getting created in elasticsearch. Logs are available in kibana after creating an index-pattern.
+
+Attached below are the screenshots of the Kibana UI configured with elasticsearch and fluentd-operator. You can see an index named `k8s-test-logging-fluentd` is created in elasticsearch. You can now create an index-pattern for an index in Kibana and view the logs in the *Discover* tab.
+
+![es_index_screenshot.png](./images/es_index_screenshot.png)
+
+![kb_logs_screenshot.png](./images/kb_logs_screenshot.png)
 
 ### Installing Operator (manually) ###
 If operator is not already installed, you can install and configure it with with the script provided in fluentd-operator repository

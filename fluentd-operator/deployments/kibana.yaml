@@ -27,6 +27,7 @@ spec:
   - port: 5601
     protocol: TCP
     targetPort: 5601
+    nodePort: 30000
   selector:
     common.k8s.elastic.co/type: kibana
     kibana.k8s.elastic.co/name: app-kibana

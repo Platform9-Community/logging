@@ -98,11 +98,6 @@ function deploy_elastic_stack() {
   echo -e "\n[${Blu}ACTION${RCol}] Deploying elasticsearch operator and creating CRDs...\n"
   kubectl apply -f 'https://download.elastic.co/downloads/eck/1.1.2/all-in-one.yaml'
   echo -e "\n[${Gre}RESULT${RCol}] Successfully deployed elasticsearch operator"
-  
-  echo -e "\n[${Blu}ACTION${RCol}] Create a storage class and setting it to default\n"
-  kubectl apply -f "https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml"
-  kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-  echo -e "\n[${Gre}RESULT${RCol}] Created storage class for elasticsearch"
 
   echo -e "\n[${Blu}ACTION${RCol}] Deploying ${Bk_Bla}${On_Whi}elasticsearch${RCol} application\n"
   kubectl apply -f $FLUENTD_OPERATOR_DEPLOYMENTS_PATH/elasticsearch.yaml
@@ -133,12 +128,12 @@ function connect_fluentd_es() {
 }
 
 function export_kibana() {
-  echo -e "\n[${Red}NOTE${RCol}] Make sure you are connected to VPN while accessing Kibana\n"
-  echo -e "\n*****************************************************************\n"
-  echo "You can now login into kibana from your browser using below credentials"
-  echo -e "\n${Gre}URL:${RCol} http://$SERVER_IP:5601"
-  echo -e "${Gre}USERNAME:${RCol} $ELASTIC_USER"
-  echo -e "${Gre}PASSWORD:${RCol} $ELASTIC_PASS"
+  echo -e "\n[${Red}NOTE${RCol}] Make sure you are connected to VPN while accessing Kibana"
+  echo -e "\n*****************************************************************"
+  echo -e "[${Blu}NOTE${RCol}] Login into kibana from your browser using below credentials"
+  echo -e "\n- ${Gre}URL:${RCol} http://$SERVER_IP:30000"
+  echo -e "- ${Gre}USERNAME:${RCol} $ELASTIC_USER"
+  echo -e "- ${Gre}PASSWORD:${RCol} $ELASTIC_PASS"
   echo -e "\n*****************************************************************\n"
 }
 
