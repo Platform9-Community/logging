@@ -16,7 +16,7 @@ Logging operator uses fluent-bit and fluentd for collection and processing of lo
 ## Logging on PMK Cluster ###
 If you are using a PMK provisioned cluster, fluentd-operator can be automatically enabled on the cluster by adding `pf9-system:logging` tag in the UI during cluster creation.
 
-For deploying elasticsearch datastore, configuring with fluentd-operator and viewing the logs in Kibana, you can simply run the below script
+For deploying elasticsearch datastore, configuring with fluentd-operator and viewing the logs in Kibana, simply run the below script
 
 ```
 ./configure-fluentd-es.sh 
@@ -26,13 +26,15 @@ This script deploys ECK (Elastic Cloud on Kubernetes) along with elasticsearch a
 
 **Notes:**
 1. Make sure to set the below mentioned variables prior to running the script  
-    ` $DU_FQDN | $DU_USERNAME | $DU_PASSWORD | $DU_CLUSTER `
+    ` $DU_FQDN | $DU_USERNAME | $DU_PASSWORD | $DU_TENANT | $DU_CLUSTER `
 
-2. Kibana is accessible only till the script is running. Exiting from the script would stop connection to Kibana
+2. Appropriate **Storage Class** should be created for your cluster and set to default. You can create a Storage Class from Platform9 UI.
 
-3. You are connected to VPN while running the script
+3. The PMK cluster should be accessible using Floating IP or Metallb should be configured.
 
-Finally you can check the index (defined in Output CR) getting created in elasticsearch and can view the logs in Kibana.
+4. You should be connected to Platform9 VPN while running the script for configuring kubectl with your PMK Cluster.
+
+Finally you can check the index (defined in Output CR) getting created in elasticsearch and can view the logs after creating an index-pattern in Kibana.
 
 
 ### Installing Operator (manually) ###

@@ -3,6 +3,7 @@
 DU_FQDN="<DU_FQDN>"
 DU_USERNAME="<DU_USERNAME>"
 DU_PASSWORD="<DU_PASSWORD>"
+DU_TENANT="<DU_TENANT>"
 DU_CLUSTER="<DU_CLUSTER_NAME>"
 
 # SETTING COLOURS IN SCRIPT
@@ -55,12 +56,12 @@ function export_kubeconfig() {
   X_AUTH_TOKEN=$(curl -si \
     -H "Content-Type: application/json" \
     $KEYSTONE_URL/auth/tokens\?nocatalog \
-    -d "$AUTH_REQUEST_PAYLOAD" | sed -En 's#^x-subject-token:\s(.*)$#\1#p' | tr -d "\n\r")
+    -d "$AUTH_REQUEST_PAYLOAD" | sed -En 's#^x-subject-token:\s(.*)$#\1#pI' | tr -d "\n\r")
   
   PROJECT_UUID=$(curl -s \
     -H "Content-Type: application/json" \
     -H "X-AUTH-TOKEN: $X_AUTH_TOKEN" \
-    $KEYSTONE_URL/auth/projects | jq -r '.projects[0].id')
+    $KEYSTONE_URL/auth/projects | jq -r '.projects[] | select(.name == '\"$DU_TENANT\"') | .id')
 
   # ===== QBERT API CALLS ====== #
   
@@ -77,6 +78,8 @@ function export_kubeconfig() {
     "$QBERT_URL/$PROJECT_UUID/kubeconfig/$CLUSTER_UUID"
  
   sed -i "s/__INSERT_BEARER_TOKEN_HERE__/$X_AUTH_TOKEN/" "$PWD/kubeconfig"
+  SERVER_IP=$(cat "$PWD/kubeconfig" | grep -oP "(?<=server: https://).*")
+
   export KUBECONFIG="$PWD/kubeconfig"
   echo -e "\n[${Gre}RESULT${RCol}] Kubeconfig for the cluster $DU_CLUSTER downloaded successfully"
 }
@@ -120,7 +123,7 @@ function connect_fluentd_es() {
   echo -e "\n[${Blu}ACTION${RCol}] Connecting fluentd with elasticsearch\n"
   
   ELASTIC_PASS=$(kubectl get secret app-elasticsearch-es-elastic-user --namespace=$FLUENTD_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
-  sed "s/%CHANGE_SVC%/$ELASTIC_SVC/; s/%CHANGE_NAMESPACE%/$FLUENTD_NAMESPACE/; s/%CHANGE_USER%/$ELASTIC_USER/ ;s/%CHANGE_PASS%/$ELASTIC_PASS/" ${FLUENTD_OPERATOR_DEPLOYMENTS_PATH}/cr-fluentd-elastic-example.yaml > ${FLUENTD_OPERATOR_DEPLOYMENTS_PATH}/cr-fluentd-elastic.yaml
+  sed "s/%CHANGE_SVC%/$ELASTIC_SVC/; s/%CHANGE_NAMESPACE%/$FLUENTD_NAMESPACE/; s/%CHANGE_USER%/$ELASTIC_USER/; s/%CHANGE_PASS%/$ELASTIC_PASS/; s/%CHANGE_CLUSTER%/$DU_CLUSTER/" ${FLUENTD_OPERATOR_DEPLOYMENTS_PATH}/cr-fluentd-elastic-example.yaml > ${FLUENTD_OPERATOR_DEPLOYMENTS_PATH}/cr-fluentd-elastic.yaml
   
   kubectl apply -f $FLUENTD_OPERATOR_DEPLOYMENTS_PATH/cr-fluentd-elastic.yaml
   FLUENTD_POD=$(kubectl get pod --namespace=$FLUENTD_NAMESPACE -l 'k8s-app=fluentd' -o=jsonpath='{.items[0].metadata.name}')
@@ -130,18 +133,15 @@ function connect_fluentd_es() {
 }
 
 function export_kibana() {
-  echo -e "\n*****************************************************************"
+  echo -e "\n[${Red}NOTE${RCol}] Make sure you are connected to VPN while accessing Kibana\n"
+  echo -e "\n*****************************************************************\n"
   echo "You can now login into kibana from your browser using below credentials"
-  echo -e "\n${Gre}URL:${RCol} https://localhost:5601"
+  echo -e "\n${Gre}URL:${RCol} http://$SERVER_IP:5601"
   echo -e "${Gre}USERNAME:${RCol} $ELASTIC_USER"
   echo -e "${Gre}PASSWORD:${RCol} $ELASTIC_PASS"
-
-  echo -e "\n[${Red}NOTE${RCol}] Make sure you are connected to VPN while accessing Kibana"
-  echo -e "\n*****************************************************************"
-  kubectl port-forward service/app-kibana-kb-http --namespace=$FLUENTD_NAMESPACE 5601 > /dev/null
+  echo -e "\n*****************************************************************\n"
 }
 
-echo -e "\n[${Red}NOTE${RCol}] Make sure you are connected to VPN before running the script"
 export_kubeconfig
 verify_fluentd_operator
 deploy_elastic_stack

@@ -4,7 +4,30 @@ metadata:
   name: app-kibana 
   namespace: logging 
 spec:
-  version: 7.7.1
+  version: 7.8.0
   count: 1
   elasticsearchRef:
-    name: app-elasticsearch 
+    name: app-elasticsearch
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    common.k8s.elastic.co/type: kibana
+    kibana.k8s.elastic.co/name: app-kibana
+  name: kibana-ui
+  namespace: logging
+spec:
+  ports:
+  - port: 5601
+    protocol: TCP
+    targetPort: 5601
+  selector:
+    common.k8s.elastic.co/type: kibana
+    kibana.k8s.elastic.co/name: app-kibana
+  type: NodePort

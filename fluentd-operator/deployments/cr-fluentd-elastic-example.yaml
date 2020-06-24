@@ -12,4 +12,4 @@ spec:
     - name: password
       value: %CHANGE_PASS%
     - name: index_name
-      value: demo-test
+      value: k8s-%CHANGE_CLUSTER%-fluentd
