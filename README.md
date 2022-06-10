@@ -8,7 +8,7 @@
   </a>
 </p>
 
-> This is a collection of Kubernetes Logging Examples yaml files the are tested to work with Platform9 Free Teir Kubernetes.
+> This is a collection of Kubernetes Logging Examples yaml files the are tested to work with Platform9 Free Tier Kubernetes.
 
 ## Author
 
